@@ -1,10 +1,12 @@
 package com.example.demo.data
 
+import com.example.demo.MyApplication
 import com.example.demo.data.model.LoggedInUser
 import com.example.demo.http.LoginAPI
 import com.example.demo.http.LoginRequest
 import com.example.demo.http.LoginResponse
 import com.example.demo.http.RetrofitTool
+import com.example.demo.util.ShareTool
 import java.io.IOException
 
 /**
@@ -27,6 +29,8 @@ class LoginDataSource {
                                 println("Code: ${apiResponse.code}")
                                 println("Message: ${apiResponse.message}")
                                 println("Data: ${apiResponse.data}")
+                                // handle loggedInUser authentication
+                                ShareTool.saveString(MyApplication.context, "token", apiResponse.data.token)
                             } else {
                                 println("Response is null from tryLoginTest")
                             }
