@@ -1,14 +1,20 @@
 package com.example.demo
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
-import android.widget.TextView
 import androidx.activity.ComponentActivity
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import com.example.demo.http.Email
 import com.example.demo.http.EmailRequest
 import com.example.demo.http.EmailResponse
@@ -23,32 +29,17 @@ import retrofit2.Response
 class Test : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        val textview = TextView(this)
-//        textview.text = "test a try"
-//        textview.gravity = Gravity.CENTER
-        setContentView(R.layout.fragment_blank)
-
-
-//        sendEmailRequest("1.2@qq.com", 0)
-        tryLoginTest("2039858744@qq.com","yfyWwp")
-        
-//        val bf = BlankFragment()
-//        val bundle = Bundle()
-//        bundle.putInt("key_int", 100)
-//        bf.arguments = bundle
-//        val ft = supportFragmentManager.beginTransaction()
-//        ft.add(R.id.container, bf)
-//        ft.commitAllowingStateLoss()
+        setContent {
+            VideoPlayerScreen("https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4")
+        }
+        tryLoginTest("2039858744@qq.com", "yfyWwp")
     }
 
-    fun tryLoginTest(email: String, smscode: String) {
+    private fun tryLoginTest(email: String, smscode: String) {
         RetrofitTool.create(LoginAPI::class.java)
-            .tryLogin(LoginRequest(email,smscode))
-            .enqueue(object :Callback<LoginResponse>{
-                override fun onResponse(
-                    call: Call<LoginResponse>,
-                    response: Response<LoginResponse>
-                ) {
+            .tryLogin(LoginRequest(email, smscode))
+            .enqueue(object : Callback<LoginResponse> {
+                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     if (response.isSuccessful) {
                         val apiResponse = response.body()
                         if (apiResponse != null) {
@@ -60,20 +51,18 @@ class Test : ComponentActivity() {
                         }
                     }
                 }
+
                 override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                    t.printStackTrace() // 打印异常信息
+                    t.printStackTrace()
                 }
             })
-
     }
 
-    fun sendEmailRequest(email: String, ttl: Long) {
+    private fun sendEmailRequest(email: String, ttl: Long) {
         RetrofitTool.create(Email::class.java)
             .sendEmail(EmailRequest(email, ttl))
             .enqueue(object : Callback<EmailResponse> {
-                override fun onResponse(
-                    call: Call<EmailResponse>, response: Response<EmailResponse>
-                ) {
+                override fun onResponse(call: Call<EmailResponse>, response: Response<EmailResponse>) {
                     if (response.isSuccessful) {
                         val apiResponse = response.body()
                         if (apiResponse != null) {
@@ -94,3 +83,32 @@ class Test : ComponentActivity() {
             })
     }
 }
+
+@Composable
+fun VideoPlayerScreen(videoUrl: String) {
+    val context = LocalContext.current
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            val mediaItem = MediaItem.fromUri(Uri.parse(videoUrl))
+            setMediaItem(mediaItem)
+            prepare()
+            playWhenReady = true
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    AndroidView(
+        factory = { context ->
+            PlayerView(context).apply {
+                this.player = exoPlayer
+            }
+        },
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
