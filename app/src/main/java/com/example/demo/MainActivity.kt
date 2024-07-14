@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.demo.http.HiOkHttp
-import com.example.demo.ui.login.LoginActivity
-import com.example.demo.ui.theme.DemoTheme
+import com.example.demo.login.ui.login.LoginActivity
+import com.example.demo.login.ui.theme.DemoTheme
 
 
 class MainActivity : ComponentActivity() {

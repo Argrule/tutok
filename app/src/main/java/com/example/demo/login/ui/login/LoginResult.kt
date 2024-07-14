@@ -1,4 +1,4 @@
-package com.example.demo.ui.login
+package com.example.demo.login.ui.login
 
 /**
  * Authentication result : success (user details) or error message.
