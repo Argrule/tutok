@@ -22,24 +22,65 @@ import com.example.demo.http.LoginAPI
 import com.example.demo.http.LoginRequest
 import com.example.demo.http.LoginResponse
 import com.example.demo.http.RetrofitTool
+import com.example.demo.http.Video
+import com.example.demo.http.VideoData
+import com.example.demo.http.VideoResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class Test : ComponentActivity() {
+    private var videoList: List<VideoData>? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // test video
+        getVideo(10, System.currentTimeMillis())
+        Log.e("test", "video,${videoList}")
         setContent {
-            VideoPlayerScreen("https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4")
+            VideoPlayerScreen(videoList?.get(0)?.url ?: "")
         }
-        tryLoginTest("2039858744@qq.com", "yfyWwp")
+//        tryLoginTest("2039858744@qq.com", "yfyWwp")
+    }
+
+    private fun getVideo(number: Int, latestTime: Long) {
+        RetrofitTool.create(Video::class.java)
+            .getVideo(latestTime, number)
+            .enqueue(object : Callback<VideoResponse> {
+                override fun onResponse(
+                    call: Call<VideoResponse>,
+                    response: Response<VideoResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val apiResponse = response.body()
+                        if (apiResponse != null) {
+                            Log.d("RetrofitTool", "Code: ${apiResponse.code}")
+                            Log.d("RetrofitTool", "Message: ${apiResponse.message}")
+                            Log.d("RetrofitTool", "Data: ${apiResponse.data}")
+                            videoList = apiResponse.data
+                            // 渲染视频
+                            setContent {
+                                VideoPlayerScreen(videoList?.get(0)?.url ?: "")
+                            }
+                        } else {
+                            Log.d("RetrofitTool", "Response is null from getVideo")
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<VideoResponse>, t: Throwable) {
+                    t.printStackTrace()
+                }
+            })
     }
 
     private fun tryLoginTest(email: String, smscode: String) {
         RetrofitTool.create(LoginAPI::class.java)
             .tryLogin(LoginRequest(email, smscode))
             .enqueue(object : Callback<LoginResponse> {
-                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                override fun onResponse(
+                    call: Call<LoginResponse>,
+                    response: Response<LoginResponse>
+                ) {
                     if (response.isSuccessful) {
                         val apiResponse = response.body()
                         if (apiResponse != null) {
@@ -62,7 +103,10 @@ class Test : ComponentActivity() {
         RetrofitTool.create(Email::class.java)
             .sendEmail(EmailRequest(email, ttl))
             .enqueue(object : Callback<EmailResponse> {
-                override fun onResponse(call: Call<EmailResponse>, response: Response<EmailResponse>) {
+                override fun onResponse(
+                    call: Call<EmailResponse>,
+                    response: Response<EmailResponse>
+                ) {
                     if (response.isSuccessful) {
                         val apiResponse = response.body()
                         if (apiResponse != null) {
